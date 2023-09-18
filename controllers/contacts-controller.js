@@ -3,7 +3,13 @@ import { HttpError } from '../helpers/index.js';
 import { ctrlWrapper } from '../decorators/index.js';
 
 const getAllContacts = async (req, res) => {
-  const result = await Contact.find({}, '-createdAt -updatedAt');
+  const { _id: owner } = req.user;
+  const { page = 1, limit = 20 } = req.query;
+  const skip = (page - 1) * limit;
+  const result = await Contact.find({ owner }, '-createdAt -updatedAt', {
+    skip,
+    limit,
+  }).populate('owner', 'name email');
   res.json(result);
 };
 
@@ -17,7 +23,8 @@ const getOneContact = async (req, res) => {
 };
 
 const postContact = async (req, res) => {
-  const result = await Contact.create(req.body);
+  const { _id: owner } = req.user;
+  const result = await Contact.create({ ...req.body, owner });
   res.status(201).json(result);
 };
 
