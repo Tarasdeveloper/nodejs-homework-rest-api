@@ -21,7 +21,16 @@ const signup = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const avatarURL = gravatar.url(email, { protocol: 'https' });
+  // const avatarURL = gravatar.url(email, { protocol: 'https' });
+
+  if (req.file) {
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.join(avatarPath, filename);
+    await fs.rename(oldPath, newPath);
+    avatarURL = path.join('avatars', filename);
+  } else {
+    avatarURL = gravatar.url(email, { protocol: 'https' });
+  }
 
   const newUser = await User.create({
     ...req.body,
