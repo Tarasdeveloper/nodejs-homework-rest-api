@@ -22,7 +22,7 @@ const signup = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  // const avatarURL = gravatar.url(email, { protocol: 'https' });
+  let avatarURL;
 
   if (req.file) {
     const { path: oldPath, filename } = req.file;
@@ -45,6 +45,25 @@ const signup = async (req, res) => {
       subscription: newUser.subscription,
       avatarURL: newUser.avatarURL,
     },
+  });
+};
+
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: oldPath, filename } = req.file;
+
+  const newPath = path.join(avatarPath, filename);
+
+  const updatedAvatar = await Jimp.read(oldPath);
+  updatedAvatar.resize(250, 250);
+  updatedAvatar.write(newPath);
+
+  await fs.unlink(oldPath);
+  const avatarURL = path.join('avatars', filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
+
+  res.json({
+    avatarURL,
   });
 };
 
@@ -93,25 +112,6 @@ const signout = async (req, res) => {
 
   res.status(204).json({
     message: 'No Content',
-  });
-};
-
-const updateAvatar = async (req, res) => {
-  const { _id } = req.user;
-  const { path: oldPath, filename } = req.file;
-
-  const newPath = path.join(avatarPath, filename);
-
-  const updatedAvatar = await Jimp.read(oldPath);
-  updatedAvatar.resize(250, 250);
-  updatedAvatar.write(newPath);
-
-  await fs.unlink(oldPath);
-  const avatarURL = path.join('avatars', filename);
-  await User.findByIdAndUpdate(_id, { avatarURL });
-
-  res.json({
-    avatarURL,
   });
 };
 
