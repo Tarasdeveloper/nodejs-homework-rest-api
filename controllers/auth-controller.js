@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs/promises';
 import path from 'path';
 import gravatar from 'gravatar';
+import Jimp from 'jimp';
 
 const avatarPath = path.resolve('public', 'avatars');
 
