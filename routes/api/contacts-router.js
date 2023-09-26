@@ -17,7 +17,12 @@ contactsRouter.get('/', contactsController.getAllContacts);
 
 contactsRouter.get('/:contactId', isValidId, contactsController.getOneContact);
 
-contactsRouter.post('/', contactAddValidate, contactsController.postContact);
+contactsRouter.post(
+  '/',
+  upload.single('photo'),
+  contactAddValidate,
+  contactsController.postContact
+);
 
 contactsRouter.put(
   '/:contactId',
