@@ -10,7 +10,13 @@ const userSignUpValidate = validateBody(userSchemas.userSignUpSchema);
 
 const userSignInValidate = validateBody(userSchemas.userSignInSchema);
 
+const userEmailValidate = validateBody(userSchemas.userEmailSchema);
+
 authRouter.post('/signup', userSignUpValidate, authController.signup);
+
+authRouter.get('/verify/:verificationCode', authController.verify);
+
+authRouter.post('/verify', userEmailValidate, authController.resendVerifyEmail);
 
 authRouter.post('/signin', userSignInValidate, authController.signin);
 

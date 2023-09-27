@@ -22,7 +22,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
     "morgan": "1.10.0",
-    "nanoid": "^4.0.2"
+    "nanoid": "^4.0.2",
+    "nodemailer": "^6.9.5"
   },
   "devDependencies": {
     "eslint": "7.19.0",
