@@ -2,7 +2,7 @@ import express from 'express';
 import contactsController from '../../controllers/contacts-controller.js';
 import { validateBody } from '../../decorators/index.js';
 import * as contactsSchema from '../../models/Contact.js';
-import { authenticate, isValidId } from '../../middlewares/index.js';
+import { authenticate, isValidId, upload } from '../../middlewares/index.js';
 
 const contactAddValidate = validateBody(contactsSchema.contactsAddSchema);
 const contactUpdateFavoriteValidate = validateBody(
@@ -17,7 +17,12 @@ contactsRouter.get('/', contactsController.getAllContacts);
 
 contactsRouter.get('/:contactId', isValidId, contactsController.getOneContact);
 
-contactsRouter.post('/', contactAddValidate, contactsController.postContact);
+contactsRouter.post(
+  '/',
+  upload.single('photo'),
+  contactAddValidate,
+  contactsController.postContact
+);
 
 contactsRouter.put(
   '/:contactId',
