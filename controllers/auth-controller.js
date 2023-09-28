@@ -15,19 +15,20 @@ const signup = async (req, res) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
-  const verificationCode = nanoid();
+  const verificationToken = nanoid();
 
   const newUser = await User.create({
     ...req.body,
     password: hashPassword,
-    verificationCode,
+    verificationToken,
   });
 
   const verifyEmail = {
     to: email,
     subject: 'Verify email',
-    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${verificationCode}">Click to verify email</a>`,
+    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${verificationToken}">Click to verify email</a>`,
   };
+  await sendEmail(verifyEmail);
 
   res.status(201).json({
     user: {
@@ -38,19 +39,19 @@ const signup = async (req, res) => {
 };
 
 const verify = async (req, res) => {
-  const { verificationCode } = req.params;
-  const user = await User.findOne({ verificationCode });
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
   if (!user) {
     throw HttpError(404);
   }
 
   await User.findByIdAndUpdate(user._id, {
     verify: true,
-    verificationCode: '',
+    verificationToken: '',
   });
 
   res.json({
-    message: 'Email verified successfully',
+    message: 'Verification successful',
   });
 };
 
@@ -61,17 +62,17 @@ const resendVerifyEmail = async (req, res) => {
     throw HttpError(404, 'Email not found');
   }
   if (user.verify) {
-    throw HttpError(400, 'Email already verified');
+    throw HttpError(400, 'Verification has already been passed');
   }
   const verifyEmail = {
     to: email,
     subject: 'Verify email',
-    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${user.verificationCode}">Click to verify email</a>`,
+    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${user.verificationToken}">Click to verify email</a>`,
   };
   await sendEmail(verifyEmail);
 
   res.json({
-    message: 'Verify email resend success',
+    message: 'Verification email sent',
   });
 };
 
@@ -83,7 +84,7 @@ const signin = async (req, res) => {
   }
 
   if (!user.verify) {
-    throw HttpError(401, 'Email not verifyed');
+    throw HttpError(401, 'Email not verified');
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
@@ -129,9 +130,9 @@ const signout = async (req, res) => {
 
 export default {
   signup: ctrlWrapper(signup),
+  verify: ctrlWrapper(verify),
   resendVerifyEmail: ctrlWrapper(resendVerifyEmail),
   signin: ctrlWrapper(signin),
   getCurrent: ctrlWrapper(getCurrent),
   signout: ctrlWrapper(signout),
-  verify: ctrlWrapper(verify),
 };
