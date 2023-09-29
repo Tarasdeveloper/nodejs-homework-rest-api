@@ -98,6 +98,8 @@ const resendVerifyEmail = async (req, res) => {
 
   res.json({
     message: 'Verification email sent',
+  })
+}
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;

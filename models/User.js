@@ -27,7 +27,10 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
-
+    avatarURL: {
+      type: String,
+      required: [true, 'Avatar is required'],
+    },
     verify: {
       type: Boolean,
       default: false,
@@ -35,10 +38,6 @@ const userSchema = new Schema(
     verificationToken: {
       type: String,
       required: [true, 'Verify token is required'],
-
-    avatarURL: {
-      type: String,
-      required: [true, 'Avatar is required'],
     },
   },
   { versionKey: false, timestamps: false }
