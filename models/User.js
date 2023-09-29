@@ -14,7 +14,7 @@ const userSchema = new Schema(
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'missing required field email'],
       unique: true,
       match: emailRegexp,
     },
