@@ -3,12 +3,21 @@ import { HttpError, sendEmail } from '../helpers/index.js';
 import { ctrlWrapper } from '../decorators/index.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+
 import { nanoid } from 'nanoid';
+import fs from 'fs/promises';
+import path from 'path';
+import gravatar from 'gravatar';
+import Jimp from 'jimp';
+
+const avatarPath = path.resolve('public', 'avatars');
+
 
 const { JWT_SECRET, BASE_URL } = process.env;
 
 const signup = async (req, res) => {
   const { email, password } = req.body;
+
   const user = await User.findOne({ email });
   if (user) {
     throw HttpError(409, 'Email in use');
@@ -17,11 +26,6 @@ const signup = async (req, res) => {
   const hashPassword = await bcrypt.hash(password, 10);
   const verificationToken = nanoid();
 
-  const newUser = await User.create({
-    ...req.body,
-    password: hashPassword,
-    verificationToken,
-  });
 
   const verifyEmail = {
     to: email,
@@ -30,13 +34,34 @@ const signup = async (req, res) => {
   };
   await sendEmail(verifyEmail);
 
+  let avatarURL;
+
+  if (req.file) {
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.join(avatarPath, filename);
+    await fs.rename(oldPath, newPath);
+    avatarURL = path.join('avatars', filename);
+  } else {
+    avatarURL = gravatar.url(email, { protocol: 'https' });
+  }
+
+  const newUser = await User.create({
+    ...req.body,
+    password: hashPassword,
+    verificationToken,
+    avatarURL,
+  });
+
+
   res.status(201).json({
     user: {
       email: newUser.email,
       subscription: newUser.subscription,
+      avatarURL: newUser.avatarURL,
     },
   });
 };
+
 
 const verify = async (req, res) => {
   const { verificationToken } = req.params;
@@ -73,6 +98,23 @@ const resendVerifyEmail = async (req, res) => {
 
   res.json({
     message: 'Verification email sent',
+
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: oldPath, filename } = req.file;
+
+  const newPath = path.join(avatarPath, filename);
+
+  const updatedAvatar = await Jimp.read(oldPath);
+  updatedAvatar.resize(250, 250);
+  updatedAvatar.write(newPath);
+
+  await fs.unlink(oldPath);
+  const avatarURL = path.join('avatars', filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
+
+  res.json({
+    avatarURL,
   });
 };
 
@@ -135,4 +177,5 @@ export default {
   signin: ctrlWrapper(signin),
   getCurrent: ctrlWrapper(getCurrent),
   signout: ctrlWrapper(signout),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
