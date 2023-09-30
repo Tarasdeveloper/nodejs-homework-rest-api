@@ -12,7 +12,6 @@ import Jimp from 'jimp';
 
 const avatarPath = path.resolve('public', 'avatars');
 
-
 const { JWT_SECRET, BASE_URL } = process.env;
 
 const signup = async (req, res) => {
@@ -25,7 +24,6 @@ const signup = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
   const verificationToken = nanoid();
-
 
   const verifyEmail = {
     to: email,
@@ -52,7 +50,6 @@ const signup = async (req, res) => {
     avatarURL,
   });
 
-
   res.status(201).json({
     user: {
       email: newUser.email,
@@ -61,7 +58,6 @@ const signup = async (req, res) => {
     },
   });
 };
-
 
 const verify = async (req, res) => {
   const { verificationToken } = req.params;
@@ -72,7 +68,7 @@ const verify = async (req, res) => {
 
   await User.findByIdAndUpdate(user._id, {
     verify: true,
-    verificationToken: 'Verified',
+    verificationToken: 'null',
   });
 
   res.json({
@@ -98,8 +94,8 @@ const resendVerifyEmail = async (req, res) => {
 
   res.json({
     message: 'Verification email sent',
-  })
-}
+  });
+};
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
