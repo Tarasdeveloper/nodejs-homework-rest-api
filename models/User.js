@@ -14,7 +14,7 @@ const userSchema = new Schema(
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'missing required field email'],
       unique: true,
       match: emailRegexp,
     },
@@ -31,13 +31,21 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'Avatar is required'],
     },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: [true, 'Verify token is required'],
+    },
   },
   { versionKey: false, timestamps: false }
 );
 
 userSchema.post('save', handleSaveError);
 
-userSchema.pre('findOneAndUpdate', runValidateAtUpdate);
+userSchema.pre('updateOne', runValidateAtUpdate);
 
 userSchema.post('findOneAndUpdate', handleSaveError);
 
@@ -50,6 +58,10 @@ export const userSignUpSchema = Joi.object({
 export const userSignInSchema = Joi.object({
   email: Joi.string().pattern(emailRegexp).required(),
   password: Joi.string().min(6).required(),
+});
+
+export const userEmailSchema = Joi.object({
+  email: Joi.string().pattern(emailRegexp).required(),
 });
 
 const User = model('user', userSchema);
